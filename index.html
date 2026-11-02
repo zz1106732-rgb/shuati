@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>互换性与测量技术 · 刷题小程序</title>
+<style>
+  :root{
+    --bg:#eef1f7;
+    --card:#ffffff;
+    --primary:#4f6ef7;
+    --primary2:#7c5cf0;
+    --text:#1f2430;
+    --muted:#8a91a3;
+    --green:#22a06b;
+    --green-bg:#e8f7f0;
+    --red:#e0524d;
+    --red-bg:#fdeeee;
+    --line:#eceef4;
+    --amber:#f0a020;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    min-height:100%;
+  }
+  .app{
+    width:100%;
+    max-width:520px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    background:var(--bg);
+  }
+  .screen{display:none;flex-direction:column;flex:1;min-height:100vh;}
+  .screen.active{display:flex;}
+
+  /* ===== Header ===== */
+  .topbar{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 16px;
+    background:linear-gradient(120deg,var(--primary),var(--primary2));
+    color:#fff;
+    position:sticky;top:0;z-index:20;
+  }
+  .topbar .back{
+    width:34px;height:34px;border-radius:10px;
+    background:rgba(255,255,255,.18);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:18px;flex:none;user-select:none;
+  }
+  .topbar .tt{flex:1;min-width:0;}
+  .topbar .tt .t1{font-size:16px;font-weight:600;line-height:1.2;}
+  .topbar .tt .t2{font-size:12px;opacity:.85;margin-top:2px;}
+  .topbar .counter{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;}
+  .prog{height:4px;background:rgba(0,0,0,.12);}
+  .prog > i{display:block;height:100%;background:#fff;border-radius:0 3px 3px 0;transition:width .25s;}
+
+  /* ===== Home ===== */
+  .hero{
+    background:linear-gradient(120deg,var(--primary),var(--primary2));
+    color:#fff;padding:26px 20px 34px;border-radius:0 0 26px 26px;
+  }
+  .hero h1{font-size:22px;font-weight:700;letter-spacing:.5px;}
+  .hero p{font-size:13px;opacity:.9;margin-top:6px;}
+  .stats{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+    margin:-22px 16px 0;position:relative;z-index:2;
+  }
+  .stat{
+    background:var(--card);border-radius:14px;padding:14px 10px;text-align:center;
+    box-shadow:0 6px 20px rgba(40,60,130,.08);
+  }
+  .stat .num{font-size:22px;font-weight:700;color:var(--primary);font-variant-numeric:tabular-nums;}
+  .stat .lab{font-size:12px;color:var(--muted);margin-top:3px;}
+  .panel{padding:16px;}
+  .card{
+    background:var(--card);border-radius:16px;padding:16px;
+    box-shadow:0 4px 16px rgba(40,60,130,.06);margin-bottom:14px;
+  }
+  .card .cap{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .card .cap .dot{width:4px;height:16px;border-radius:2px;background:linear-gradient(var(--primary),var(--primary2));}
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .mode{
+    border:1px solid var(--line);border-radius:14px;padding:16px 14px;cursor:pointer;
+    transition:.15s;background:#fff;text-align:left;
+  }
+  .mode:active{transform:scale(.97);}
+  .mode .ic{font-size:26px;}
+  .mode .m1{font-size:15px;font-weight:600;margin-top:8px;}
+  .mode .m2{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4;}
+  .mode.m-blue{border-color:#dbe3ff;background:#f5f7ff;}
+  .mode.m-purple{border-color:#e8defc;background:#faf7ff;}
+  .mode.m-green{border-color:#d5f0e3;background:#f2fbf7;}
+  .mode.m-amber{border-color:#fdebd0;background:#fffaf2;}
+  .btn{
+    display:block;width:100%;text-align:center;padding:13px;border-radius:12px;
+    font-size:14px;font-weight:600;cursor:pointer;border:none;transition:.15s;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn.ghost{background:#fff;color:var(--muted);border:1px solid var(--line);}
+  .btn.danger{background:#fff;color:var(--red);border:1px solid #f3d4d3;}
+
+  /* ===== Quiz ===== */
+  .quiz-body{padding:16px 16px 90px;flex:1;}
+  .qnum{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;color:var(--primary);font-weight:600;
+    background:#eef2ff;border-radius:20px;padding:5px 12px;margin-bottom:12px;
+  }
+  .qtext{font-size:17px;line-height:1.65;font-weight:600;margin-bottom:16px;}
+  .opts{display:flex;flex-direction:column;gap:10px;}
+  .opt{
+    display:flex;align-items:flex-start;gap:12px;text-align:left;
+    border:1.5px solid var(--line);border-radius:13px;padding:13px 14px;
+    cursor:pointer;background:#fff;transition:.15s;width:100%;font-size:15px;line-height:1.5;
+  }
+  .opt:active{transform:scale(.99);}
+  .opt .tag{
+    flex:none;width:26px;height:26px;border-radius:8px;
+    background:#f0f2f8;color:var(--muted);font-size:13px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;
+  }
+  .opt .txt{flex:1;}
+  .opt.picked{border-color:var(--primary);background:#f4f7ff;}
+  .opt.picked .tag{background:var(--primary);color:#fff;}
+  .opt.right{border-color:var(--green);background:var(--green-bg);}
+  .opt.right .tag{background:var(--green);color:#fff;}
+  .opt.wrong{border-color:var(--red);background:var(--red-bg);}
+  .opt.wrong .tag{background:var(--red);color:#fff;}
+  .opt.dim{opacity:.55;}
+  .opt.disabled{cursor:default;}
+
+  .explain{
+    margin-top:14px;border-radius:13px;padding:13px 14px;font-size:13.5px;line-height:1.6;
+    border-left:3px solid var(--green);background:var(--green-bg);color:#1d7a55;
+  }
+  .explain.wrong{border-left-color:var(--red);background:var(--red-bg);color:#b0403b;}
+  .explain b{display:block;margin-bottom:4px;font-size:13px;}
+
+  .foot{
+    position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+    width:100%;max-width:520px;background:#fff;border-top:1px solid var(--line);
+    display:flex;gap:10px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+    z-index:15;
+  }
+  .foot .btn{flex:1;}
+  .btn.primary{background:linear-gradient(120deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 6px 16px rgba(79,110,247,.35);}
+  .btn.soft{background:#eef2ff;color:var(--primary);}
+  .btn.sheet{flex:none;width:44px;display:flex;align-items:center;justify-content:center;font-size:20px;background:#fff;border:1px solid var(--line);}
+
+  /* ===== Answer sheet ===== */
+  .mask{position:fixed;inset:0;background:rgba(20,25,40,.45);z-index:30;display:none;}
+  .mask.show{display:block;}
+  .sheet{
+    position:fixed;left:50%;bottom:0;transform:translate(-50%,110%);
+    width:100%;max-width:520px;background:#fff;border-radius:20px 20px 0 0;
+    padding:18px 16px calc(20px + env(safe-area-inset-bottom));z-index:31;transition:transform .28s;
+    max-height:72vh;overflow:auto;
+  }
+  .sheet.show{transform:translate(-50%,0);}
+  .sheet h3{font-size:15px;margin-bottom:4px;}
+  .sheet .leg{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:14px;flex-wrap:wrap;}
+  .sheet .leg span{display:inline-flex;align-items:center;gap:5px;}
+  .sheet .leg i{width:11px;height:11px;border-radius:3px;display:inline-block;}
+  .grid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;}
+  .cell{
+    aspect-ratio:1;border-radius:9px;font-size:13px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    background:#f1f3f9;color:var(--muted);border:1.5px solid transparent;
+  }
+  .cell.cur{border-color:var(--primary);color:var(--primary);background:#eef2ff;}
+  .cell.ok{background:var(--green-bg);color:var(--green);}
+  .cell.bad{background:var(--red-bg);color:var(--red);}
+  .cell.done{background:#dbe3ff;color:var(--primary);}
+
+  /* ===== Result ===== */
+  .result{flex:1;padding:20px 16px 100px;display:flex;flex-direction:column;}
+  .score-card{
+    background:linear-gradient(120deg,var(--primary),var(--primary2));
+    border-radius:18px;color:#fff;padding:24px 20px;text-align:center;margin-bottom:16px;
+  }
+  .score-card .sc{font-size:54px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;}
+  .score-card .sub{font-size:13px;opacity:.9;margin-top:8px;}
+  .rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+  .rgrid .r{background:#fff;border-radius:13px;padding:13px;text-align:center;box-shadow:0 4px 14px rgba(40,60,130,.06);}
+  .rgrid .r .n{font-size:20px;font-weight:700;}
+  .rgrid .r .l{font-size:12px;color:var(--muted);margin-top:2px;}
+  .rgrid .r.g .n{color:var(--green);}
+  .rgrid .r.r .n{color:var(--red);}
+  .rgrid .r.a .n{color:var(--primary);}
+  .review-item{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 3px 12px rgba(40,60,130,.05);}
+  .review-item .q{font-size:14px;font-weight:600;line-height:1.5;}
+  .review-item .line{font-size:13px;margin-top:8px;color:var(--muted);line-height:1.6;}
+  .review-item .line b{font-weight:600;}
+  .review-item .line.ok b{color:var(--green);}
+  .review-item .line.bad b{color:var(--red);}
+  .ft-actions{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#fff;border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;z-index:15;}
+
+  /* ===== 悬浮球 ===== */
+  .fab{
+    position:fixed;z-index:45;width:56px;height:56px;border-radius:50%;
+    background:linear-gradient(135deg,var(--primary),var(--primary2));
+    box-shadow:0 8px 24px rgba(79,110,247,.45);
+    display:none;align-items:center;justify-content:center;
+    touch-action:none;user-select:none;cursor:pointer;
+  }
+  .fab .stick{width:20px;height:20px;border:2px solid rgba(255,255,255,.92);border-radius:50%;position:relative;}
+  .fab .stick::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:7px;height:7px;background:#fff;border-radius:50%;}
+  .fab.dragging{box-shadow:0 12px 28px rgba(79,110,247,.6);}
+
+  .toast{
+    position:fixed;left:50%;top:36%;transform:translate(-50%,-50%);
+    background:rgba(20,25,40,.85);color:#fff;font-size:14px;font-weight:600;
+    padding:10px 18px;border-radius:24px;z-index:60;pointer-events:none;
+    opacity:0;transition:opacity .18s;white-space:nowrap;
+  }
+  .toast.show{opacity:1;}
+
+  .switch-row{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 14px;font-size:14px;font-weight:600;}
+  .switch{position:relative;display:inline-block;width:46px;height:26px;}
+  .switch input{opacity:0;width:0;height:0;}
+  .switch .slider{position:absolute;inset:0;background:#d6dbe6;border-radius:26px;transition:.2s;cursor:pointer;}
+  .switch .slider::before{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .switch input:checked + .slider{background:var(--primary);}
+  .switch input:checked + .slider::before{transform:translateX(20px);}
+  .fab-set-row{display:flex;align-items:center;justify-content:space-between;padding:11px 2px;border-bottom:1px solid var(--line);font-size:14px;}
+  .fab-set-row select{width:150px;padding:8px 10px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:13px;color:var(--text);}
+  .topicon{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex:none;border:none;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ========== 首页 ========== -->
+  <section class="screen active" id="home">
+    <div class="hero">
+      <h1>互换性与测量技术</h1>
+      <p>单选题题库 · 共 50 题</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num" id="stTotal">50</div><div class="lab">总题数</div></div>
+      <div class="stat"><div class="num" id="stMastered">0</div><div class="lab">已掌握</div></div>
+      <div class="stat"><div class="num" id="stWrong">0</div><div class="lab">待巩固</div></div>
+    </div>
+    <div class="panel">
+      <div class="card">
+        <div class="cap"><span class="dot"></span>开始刷题</div>
+        <div class="modes">
+          <div class="mode m-blue" data-mode="seq">
+            <div class="ic">📖</div><div class="m1">顺序练习</div>
+            <div class="m2">按题号逐题作答，即答即判</div>
+          </div>
+          <div class="mode m-purple" data-mode="rand">
+            <div class="ic">🎲</div><div class="m1">随机练习</div>
+            <div class="m2">题目随机打乱，检验掌握度</div>
+          </div>
+          <div class="mode m-green" data-mode="wrong">
+            <div class="ic">🎯</div><div class="m1">错题重练</div>
+            <div class="m2">只刷做错的题，逐个击破</div>
+          </div>
+          <div class="mode m-amber" data-mode="exam">
+            <div class="ic">📝</div><div class="m1">模拟考试</div>
+            <div class="m2">统一作答后交卷，出成绩单</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn soft" id="btnFabSetup" style="margin-bottom:10px;">🎯 悬浮球手势设置</button>
+      <button class="btn danger" id="btnReset">清空学习记录</button>
+    </div>
+  </section>
+
+  <!-- ========== 刷题 ========== -->
+  <section class="screen" id="quiz">
+    <div class="topbar">
+      <div class="back" id="btnBack">‹</div>
+      <div class="tt"><div class="t1" id="quizTitle">顺序练习</div><div class="t2" id="quizSub">单选题</div></div>
+      <button class="topicon" id="btnFabToggle" title="悬浮球设置">◎</button>
+      <div class="counter" id="quizCounter">1/50</div>
+    </div>
+    <div class="prog"><i id="quizProg" style="width:2%"></i></div>
+    <div class="quiz-body">
+      <div class="qnum" id="qNum">第 1 题 · 1分</div>
+      <div class="qtext" id="qText"></div>
+      <div class="opts" id="qOpts"></div>
+      <div id="qExplain"></div>
+    </div>
+    <div class="foot">
+      <button class="btn sheet" id="btnSheet">▦</button>
+      <button class="btn soft" id="btnPrev">上一题</button>
+      <button class="btn primary" id="btnNext">下一题</button>
+    </div>
+  </section>
+
+  <!-- ========== 成绩 ========== -->
+  <section class="screen" id="result">
+    <div class="topbar">
+      <div class="back" id="btnResultHome">‹</div>
+      <div class="tt"><div class="t1">答题报告</div><div class="t2" id="resultMode">模拟考试</div></div>
+    </div>
+    <div class="result">
+      <div class="score-card">
+        <div class="sc" id="resScore">0</div>
+        <div class="sub" id="resSub">得分</div>
+      </div>
+      <div class="rgrid">
+        <div class="r g"><div class="n" id="resRight">0</div><div class="l">答对</div></div>
+        <div class="r r"><div class="n" id="resWrong">0</div><div class="l">答错</div></div>
+        <div class="r a"><div class="n" id="resRate">0%</div><div class="l">正确率</div></div>
+      </div>
+      <div id="resReview"></div>
+    </div>
+    <div class="ft-actions">
+      <button class="btn soft" id="btnRetryWrong">再刷错题</button>
+      <button class="btn primary" id="btnResultAgain">返回首页</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- 答题卡 -->
+<div class="mask" id="mask"></div>
+<div class="sheet" id="sheet">
+  <h3>答题卡</h3>
+  <div class="leg">
+    <span><i style="background:#dbe3ff"></i>已答</span>
+    <span><i style="background:#e8f7f0"></i>答对</span>
+    <span><i style="background:#fdeeee"></i>答错</span>
+    <span><i style="background:#f1f3f9"></i>未答</span>
+  </div>
+  <div class="grid" id="sheetGrid"></div>
+</div>
+
+<!-- 悬浮球手势设置 -->
+<div class="sheet" id="fabPanel">
+  <h3>悬浮球手势设置</h3>
+  <div class="switch-row"><span>显示悬浮球</span><label class="switch"><input type="checkbox" id="fabShow"><span class="slider"></span></label></div>
+  <div id="fabRows"></div>
+  <button class="btn soft" id="fabReset" style="margin-top:14px;">恢复默认手势</button>
+</div>
+
+<!-- 悬浮球 -->
+<div class="fab" id="fab"><span class="stick"></span></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   题库数据（可编辑）
+   answer：正确选项下标，0=A、1=B、2=C、3=D
+   如某题答案有误，直接修改对应 answer 值即可
+   ============================================================ */
+const QUESTIONS = [
+{q:"互换性按应用场景分类，不包括下列哪项？",opts:["机械产品互换性","电子产品互换性","建筑构件互换性","临时装配互换性"],answer:3,explain:"按应用场景分为机械产品、电子产品、建筑构件等互换性；“临时装配互换性”不属于该分类。"},
+{q:"选择公差等级时，主要依据的是？",opts:["零件的材料","零件的重量","零件的功能要求与加工成本","零件的尺寸大小"],answer:2,explain:"公差等级要综合零件的功能要求与加工经济性（成本）来确定。"},
+{q:"齿轮传动的平稳性主要取决于齿轮的哪个公差项目？",opts:["齿距累积总偏差","齿圈径向跳动","公法线长度偏差","单个齿距偏差"],answer:3,explain:"齿距累积总偏差、齿圈径向跳动反映运动精度；单个齿距偏差（及齿廓偏差）影响传动平稳性。"},
+{q:"齿轮的分度圆齿厚偏差用于控制齿轮的？",opts:["运动精度","平稳性精度","接触精度","安装精度"],answer:2,explain:"分度圆齿厚偏差用于控制齿厚（齿轮副侧隙），保证轮齿正常啮合接触，本题按“接触精度”归类。"},
+{q:"基孔制配合中，基准孔的基本偏差代号是？",opts:["H","h","J","j"],answer:0,explain:"基孔制的基准孔基本偏差代号为 H，其下偏差 EI=0。"},
+{q:"某轴的尺寸标注为 φ50f7，其中“f”代表的是？",opts:["公差等级","基本偏差","实际尺寸","极限尺寸"],answer:1,explain:"“f”是轴的基本偏差代号，“7”是公差等级。"},
+{q:"某孔的尺寸为 φ80H8，其公差带的基本偏差是？",opts:["下偏差为 0","上偏差为 0","下偏差为正值","上偏差为负值"],answer:0,explain:"H 的基本偏差为下偏差 EI=0，公差带位于零线上方。"},
+{q:"几何公差中，用于控制两平面之间距离精度的公差特征是？",opts:["平面度","位置度","平行度","同轴度"],answer:1,explain:"位置度属定位公差，可控制被测要素（如两平面）相对基准的位置（含距离）精度。"},
+{q:"表面粗糙度的评定长度是指？",opts:["整个被测表面的长度","取样长度的 1/5","取样长度的 2 倍","用于评定表面粗糙度所取的一段基准长度（通常为 5 个取样长度）"],answer:3,explain:"评定长度通常取 5 个取样长度（即 5l）。"},
+{q:"测量器具的分度值是指？",opts:["测量器具的测量范围","测量器具相邻两刻线所代表的量值之差","测量器具的最大允许误差","测量器具的精度等级"],answer:1,explain:"分度值（刻度值）是相邻两刻线所代表的量值之差。"},
+{q:"下列哪种配合属于过盈配合？",opts:["H7/g6","H7/h6","H7/js6","H7/s6"],answer:3,explain:"s 为过盈配合的轴基本偏差，H7/s6 形成过盈配合。"},
+{q:"测量仪器的示值误差是指？",opts:["测量结果与平均值的偏差","仪器示值与被测量真值的偏差","多次测量结果的最大差值","仪器的最大允许误差"],answer:1,explain:"示值误差 = 仪器示值 − 被测量真值。"},
+{q:"系统误差的特点是？",opts:["随机产生，无规律可循","绝对值大小随机变化","具有确定性，可重复出现","无法通过校准消除"],answer:2,explain:"系统误差具有确定性、重复性，可通过修正或校准消除。"},
+{q:"下列哪种几何公差属于定位公差？",opts:["平面度","垂直度","圆跳动","同轴度"],answer:3,explain:"定位公差包括位置度、同轴度、对称度；垂直度是定向公差。"},
+{q:"选择极限配合时，若要求零件间有相对运动，应优先选用？",opts:["过盈配合","间隙配合","过渡配合"],answer:1,explain:"零件间有相对运动时，应选用间隙配合以保证正常运动。"},
+{q:"下列几何公差特征中，属于形状公差的是？",opts:["圆度","对称度","跳动度","位置度"],answer:0,explain:"形状公差包括直线度、平面度、圆度、圆柱度等；对称度、位置度为定位公差。"},
+{q:"几何公差框格中，第一格标注的内容是？",opts:["基准要素","公差值","几何公差特征符号","被测要素"],answer:2,explain:"框格第一格标注几何公差特征符号，第二格标注公差值，第三格起标注基准。"},
+{q:"下列哪种加工方法获得的表面粗糙度值最小？",opts:["车削","铣削","磨削","研磨"],answer:3,explain:"研磨获得的表面粗糙度最小（表面最光滑）。"},
+{q:"表面粗糙度标注时，若标注 Ra 值为 3.2μm，其含义是？",opts:["轮廓算术平均偏差为 3.2 微米","轮廓最大高度为 3.2 微米","微观不平度十点高度为 3.2 微米","轮廓均方根偏差为 3.2 微米"],answer:0,explain:"Ra 是轮廓算术平均偏差，3.2μm 即其数值。"},
+{q:"几何公差中，圆跳动公差的被测要素通常是？",opts:["圆柱面或圆锥面","平面","直线","点"],answer:0,explain:"圆跳动的被测要素是绕基准轴线回转的圆柱面或圆锥面。"},
+{q:"为减小测量误差，下列哪种方法属于消除系统误差的措施？",opts:["多次测量取平均值","选用精度更高的仪器","控制测量环境温度","对测量仪器进行定期校准"],answer:3,explain:"定期校准可消除/减小系统误差；多次测量取平均值主要减小偶然误差。"},
+{q:"下列哪项不属于互换性在机械制造中的作用？",opts:["提高生产效率","降低生产成本","便于维修更换","增加零件重量"],answer:3,explain:"互换性可提高效率、降低成本、便于维修更换；“增加零件重量”无关。"},
+{q:"过渡配合可能出现的情况是？",opts:["只有间隙","间隙或过盈","只有过盈","无间隙无过盈"],answer:1,explain:"过渡配合可能产生间隙也可能产生过盈。"},
+{q:"当几何公差要求被测要素相对于基准要素有定向精度要求时，应选用哪种公差？",opts:["定向公差（平行度、垂直度、倾斜度）","定位公差（位置度、同轴度、对称度）","形状公差（圆度、圆柱度、平面度）","跳动公差（圆跳动、全跳动）"],answer:0,explain:"有定向要求时选定向公差：平行度、垂直度、倾斜度。"},
+{q:"偶然误差的分布规律符合？",opts:["线性分布","指数分布","正态分布","均匀分布"],answer:2,explain:"偶然误差（随机误差）服从正态分布。"},
+{q:"齿轮传动中，接触斑点的大小和分布主要影响齿轮的？",opts:["运动精度","平稳性精度","安装精度","承载能力"],answer:3,explain:"接触斑点反映齿面接触（载荷分布）情况，影响承载能力。"},
+{q:"测量误差中，由测量环境温度、湿度变化引起的误差属于？",opts:["系统误差","粗大误差","偶然误差","方法误差"],answer:0,explain:"环境温度、湿度变化引起的误差具有规律性，属系统误差。"},
+{q:"测量器具的“示值范围”是指？",opts:["器具能够显示的最小到最大量值范围","器具的最大测量误差范围","器具的精度等级对应的量值范围","器具测量时的有效行程范围"],answer:0,explain:"示值范围是器具能显示的最小到最大量值范围。"},
+{q:"齿轮的公法线长度偏差用于控制齿轮的？",opts:["齿距精度","齿厚精度","齿厚均匀性","齿廓精度"],answer:1,explain:"公法线长度偏差用于控制齿厚（齿轮副侧隙）。"},
+{q:"表面粗糙度的取样长度是指？",opts:["评定长度的总和","被测表面的最大长度","仪器测量时的行程长度","用于评定表面粗糙度所取的一段基准长度（与轮廓起伏周期相关）"],answer:3,explain:"取样长度是评定表面粗糙度所取的一段基准长度，与轮廓起伏周期相关。"},
+{q:"齿轮的齿廓总偏差主要影响齿轮的？",opts:["传动平稳性","运动精度","接触精度","承载能力"],answer:0,explain:"齿廓总偏差影响齿轮传动平稳性。"},
+{q:"某轴的尺寸为 φ60h7，其基本偏差是？",opts:["上偏差为正值","上偏差为 0","下偏差为 0","下偏差为正值"],answer:1,explain:"h 的基本偏差为上偏差 es=0（基准轴）。"},
+{q:"齿轮的齿距累积总偏差主要影响齿轮的？",opts:["平稳性精度","接触精度","安装精度","运动精度"],answer:3,explain:"齿距累积总偏差反映运动精度（传递运动准确性）。"},
+{q:"极限偏差中，上偏差的计算公式是？",opts:["上偏差 = 最大极限尺寸 - 基本尺寸","上偏差 = 最小极限尺寸 - 基本尺寸","上偏差 = 实际尺寸 - 基本尺寸","上偏差 = 最大极限尺寸 - 最小极限尺寸"],answer:0,explain:"上偏差 = 最大极限尺寸 − 基本尺寸；下偏差 = 最小极限尺寸 − 基本尺寸。"},
+{q:"齿轮的齿圈径向跳动主要反映齿轮的？",opts:["平稳性精度","运动精度","接触精度","安装精度"],answer:1,explain:"齿圈径向跳动反映齿轮运动精度。"},
+{q:"几何公差框格中，若需要标注基准要素，基准字母应标注在？",opts:["第一格","第二格","第三格及以后","公差值之后"],answer:2,explain:"基准字母标注在框格第三格及以后。"},
+{q:"表面粗糙度值越小，说明零件表面？",opts:["越光滑","越粗糙","强度越高","硬度越高"],answer:0,explain:"表面粗糙度值越小，表面越光滑。"},
+{q:"表面粗糙度的主要评定参数中，最常用的轮廓算术平均偏差代号是？",opts:["Rz","Ra","Ry","Rq"],answer:1,explain:"最常用的轮廓算术平均偏差代号为 Ra。"},
+{q:"表面粗糙度标注中，数字的单位是？",opts:["μm","mm","cm","m"],answer:0,explain:"表面粗糙度数值单位为微米（μm）。"},
+{q:"测量结果的准确度是指测量结果与哪个值的接近程度？",opts:["真值","平均值","测量值","标称值"],answer:0,explain:"准确度是测量结果与真值接近的程度。"},
+{q:"下列哪项是互换性按互换程度分类的核心类型？",opts:["完全互换性与不完全互换性","尺寸互换性与形状互换性","功能互换性与装配互换性","单件互换性与批量互换性"],answer:0,explain:"按互换程度分为完全互换性与不完全互换性。"},
+{q:"国家标准中，确定公差带位置的核心参数是？",opts:["公差等级","基本偏差","实际偏差","极限偏差"],answer:1,explain:"基本偏差确定公差带相对零线的位置。"},
+{q:"当孔的实际尺寸大于轴的实际尺寸时，该配合属于？",opts:["过盈配合","过渡配合","间隙配合","紧配合"],answer:2,explain:"孔实际尺寸 > 轴实际尺寸时为间隙配合。"},
+{q:"几何公差中，用于控制平面内点、线、面位置精度的公差特征是？",opts:["平行度","垂直度","同轴度","位置度"],answer:3,explain:"位置度控制点、线、面相对基准的位置精度。"},
+{q:"测量误差按性质分类，下列属于系统误差的是？",opts:["测量人员读数偶然偏差","测量仪器零点漂移","环境温度瞬时波动导致的误差","测量工具振动产生的误差"],answer:1,explain:"仪器零点漂移属系统误差（有规律、可修正）。"},
+{q:"下列测量器具中，属于精密测量仪器的是？",opts:["游标卡尺","外径千分尺","工具显微镜","钢直尺"],answer:2,explain:"工具显微镜属精密测量仪器，其余为通用量具。"},
+{q:"下列几何公差中，能综合控制圆柱面形状误差的是？",opts:["圆度","圆柱度","直线度","同轴度"],answer:1,explain:"圆柱度能综合控制圆柱面的形状误差。"},
+{q:"基轴制配合中，基准轴的基本偏差代号是？",opts:["H","h","K","k"],answer:1,explain:"基轴制的基准轴基本偏差代号为 h，其上偏差 es=0。"},
+{q:"几何公差中的全跳动公差可以综合控制被测要素的？",opts:["形状、位置和方向误差","只有形状误差","只有位置误差","只有方向误差"],answer:0,explain:"全跳动可综合控制被测要素的形状、位置和方向误差。"},
+{q:"表面粗糙度值增大，会导致零件的哪种性能下降？",opts:["耐磨性","刚度","强度","硬度"],answer:0,explain:"表面粗糙度增大，耐磨性下降。"},
+];
+
+const LS_KEY = "sq_progress_v1";
+const LETTERS = ["A","B","C","D","E"];
+
+function loadData(){
+  try{
+    const d = JSON.parse(localStorage.getItem(LS_KEY));
+    if(d && Array.isArray(d.wrong) && typeof d.mastered==="object") return {
+      wrong: d.wrong, mastered: d.mastered,
+      right: d.right||0, total: d.total||0
+    };
+  }catch(e){}
+  return {wrong:[], mastered:{}, right:0, total:0};
+}
+function saveData(d){
+  localStorage.setItem(LS_KEY, JSON.stringify(d));
+}
+
+let data = loadData();
+let state = {mode:"seq", order:[], cur:0, answers:{}, examSubmitted:false};
+
+const $ = id => document.getElementById(id);
+const screens = {home:$("home"), quiz:$("quiz"), result:$("result")};
+
+function show(name){
+  Object.keys(screens).forEach(k=>screens[k].classList.toggle("active", k===name));
+  window.scrollTo(0,0);
+}
+
+/* ---------- 首页 ---------- */
+function renderHome(){
+  $("stTotal").textContent = QUESTIONS.length;
+  $("stMastered").textContent = Object.keys(data.mastered).length;
+  $("stWrong").textContent = data.wrong.length;
+}
+
+/* ---------- 组卷 ---------- */
+function buildOrder(mode){
+  let idx = QUESTIONS.map((_,i)=>i);
+  if(mode==="rand") idx = shuffle(idx);
+  if(mode==="wrong") idx = idx.filter(i=>data.wrong.includes(i));
+  if(mode==="seq" || mode==="exam") {} // 保持原序
+  return idx;
+}
+function shuffle(a){
+  a = a.slice();
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+const MODE_TITLES = {seq:"顺序练习", rand:"随机练习", wrong:"错题重练", exam:"模拟考试"};
+
+function start(mode){
+  state.mode = mode;
+  state.order = buildOrder(mode);
+  state.cur = 0;
+  state.answers = {};
+  state.examSubmitted = false;
+  if(state.order.length===0){
+    alert(mode==="wrong" ? "暂无错题，先去刷几题吧！" : "题库为空");
+    return;
+  }
+  $("quizTitle").textContent = MODE_TITLES[mode];
+  $("quizSub").textContent = mode==="exam" ? "统一作答后交卷" : "即答即判";
+  show("quiz");
+  renderQ();
+}
+
+function renderQ(){
+  const i = state.order[state.cur];
+  const q = QUESTIONS[i];
+  const total = state.order.length;
+  $("quizCounter").textContent = (state.cur+1) + "/" + total;
+  $("quizProg").style.width = ((state.cur+1)/total*100) + "%";
+  $("qNum").textContent = "第 " + (state.cur+1) + " 题（题库第 " + (i+1) + " 题）· 1分";
+  $("qText").textContent = q.q;
+
+  const picked = state.answers[i];
+  const revealed = state.mode!=="exam" && picked!==undefined;
+  const box = $("qOpts"); box.innerHTML = "";
+  q.opts.forEach((op, oi)=>{
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.innerHTML = '<span class="tag">'+LETTERS[oi]+'</span><span class="txt">'+op+'</span>';
+    if(revealed){
+      b.classList.add("disabled");
+      if(oi===q.answer) b.classList.add("right");
+      else if(oi===picked) b.classList.add("wrong");
+      else b.classList.add("dim");
+    }else if(picked===oi){
+      b.classList.add("picked");
+      if(state.mode==="exam") b.classList.remove("disabled");
+    }
+    b.onclick = ()=>onPick(i, oi);
+    box.appendChild(b);
+  });
+
+  // 解析
+  const ex = $("qExplain"); ex.innerHTML = "";
+  if(revealed){
+    const ok = picked===q.answer;
+    ex.innerHTML = '<div class="explain '+(ok?"":"wrong")+'"><b>'+(ok?"✔ 回答正确":"✘ 回答错误，正确答案："+LETTERS[q.answer])+'</b>'+q.explain+'</div>';
+  }
+
+  $("btnPrev").style.display = state.cur===0 ? "none":"block";
+  const last = state.cur===total-1;
+  if(state.mode==="exam"){
+    $("btnNext").textContent = last ? "交卷" : "下一题";
+  }else{
+    $("btnNext").textContent = last ? "完成" : "下一题";
+  }
+  renderSheet();
+}
+
+function onPick(qid, oi){
+  if(state.mode==="exam"){
+    if(state.examSubmitted) return;
+    state.answers[qid]=oi;
+    renderQ();
+    return;
+  }
+  if(state.answers[qid]!==undefined) return; // 已答，锁定
+  state.answers[qid]=oi;
+  const q = QUESTIONS[qid];
+  const ok = oi===q.answer;
+  // 记录学习数据
+  data.total++;
+  if(ok){
+    data.right++;
+    data.mastered[qid]=1;
+    data.wrong = data.wrong.filter(x=>x!==qid);
+  }else{
+    if(!data.wrong.includes(qid)) data.wrong.push(qid);
+  }
+  saveData(data);
+  renderQ();
+  renderHome();
+}
+
+/* ---------- 答题卡 ---------- */
+function renderSheet(){
+  const g = $("sheetGrid"); g.innerHTML = "";
+  state.order.forEach((qid, idx)=>{
+    const c = document.createElement("div");
+    c.className = "cell";
+    c.textContent = idx+1;
+    const picked = state.answers[qid];
+    if(idx===state.cur) c.classList.add("cur");
+    if(state.mode==="exam"){
+      if(picked!==undefined) c.classList.add("done");
+    }else if(picked!==undefined){
+      c.classList.add(picked===QUESTIONS[qid].answer ? "ok":"bad");
+    }
+    c.onclick = ()=>{ state.cur=idx; closeSheet(); renderQ(); };
+    g.appendChild(c);
+  });
+}
+function openSheet(){ $("sheet").classList.add("show"); $("mask").classList.add("show"); renderSheet(); }
+function closeSheet(){ $("sheet").classList.remove("show"); $("mask").classList.remove("show"); }
+
+/* ---------- 交卷 / 完成 ---------- */
+function goNext(){
+  if(state.cur < state.order.length-1){ state.cur++; renderQ(); return; }
+  if(state.mode==="exam"){
+    submitExam();
+  }else{
+    // 完成：回到首页（练习模式已逐题判分）
+    show("home"); renderHome();
+  }
+}
+function submitExam(){
+  let right=0, wrongList=[];
+  state.order.forEach(qid=>{
+    const q = QUESTIONS[qid];
+    const picked = state.answers[qid];
+    if(picked===q.answer){ right++; data.mastered[qid]=1; data.wrong=data.wrong.filter(x=>x!==qid); }
+    else{ wrongList.push(qid); if(!data.wrong.includes(qid)) data.wrong.push(qid); }
+  });
+  data.total += state.order.length; data.right += right;
+  saveData(data);
+  state.examSubmitted = true;
+  showResult(right, wrongList);
+}
+
+function showResult(right, wrongList){
+  const total = state.order.length;
+  const rate = total ? Math.round(right/total*100) : 0;
+  $("resScore").textContent = right*2; // 每题2分制，百分制
+  $("resSub").textContent = "得分（每题2分）";
+  $("resultMode").textContent = MODE_TITLES[state.mode] + " · " + total + " 题";
+  $("resRight").textContent = right;
+  $("resWrong").textContent = wrongList.length;
+  $("resRate").textContent = rate + "%";
+  const box = $("resReview"); box.innerHTML = "";
+  if(wrongList.length===0){
+    box.innerHTML = '<div class="card" style="text-align:center;color:#22a06b;font-weight:600;padding:30px 16px;">🎉 全部答对，太棒了！</div>';
+  }else{
+    wrongList.forEach(qid=>{
+      const q = QUESTIONS[qid];
+      const picked = state.answers[qid];
+      const it = document.createElement("div");
+      it.className = "review-item";
+      it.innerHTML = '<div class="q">'+(qid+1)+'. '+q.q+'</div>'+
+        '<div class="line bad"><b>你的答案：'+(picked!==undefined?LETTERS[picked]:"未作答")+'</b></div>'+
+        '<div class="line ok"><b>正确答案：'+LETTERS[q.answer]+'</b> · '+q.explain+'</div>';
+      box.appendChild(it);
+    });
+  }
+  show("result");
+}
+
+/* ---------- 事件 ---------- */
+document.querySelectorAll(".mode").forEach(m=>{
+  m.addEventListener("click", ()=>start(m.dataset.mode));
+});
+$("btnBack").onclick = ()=>{ show("home"); renderHome(); };
+$("btnPrev").onclick = ()=>{ if(state.cur>0){state.cur--;renderQ();} };
+$("btnNext").onclick = goNext;
+$("btnSheet").onclick = openSheet;
+$("mask").onclick = ()=>{ closeSheet(); closeFabPanel(); };
+$("btnFabSetup").onclick = openFabPanel;
+$("btnFabToggle").onclick = openFabPanel;
+$("btnReset").onclick = ()=>{
+  if(confirm("确定清空全部学习记录（错题、掌握情况）？")){
+    data = {wrong:[], mastered:{}, right:0, total:0};
+    saveData(data); renderHome();
+  }
+};
+$("btnResultHome").onclick = ()=>{ show("home"); renderHome(); };
+$("btnResultAgain").onclick = ()=>{ show("home"); renderHome(); };
+$("btnRetryWrong").onclick = ()=>{
+  if(data.wrong.length===0){ alert("没有错题，无需重练！"); return; }
+  start("wrong");
+};
+
+/* ==================== 悬浮球手势 ==================== */
+const DEFAULT_GESTURES = {tap:"next", up:"prev", down:"next", left:"prevOpt", right:"nextOpt"};
+const GESTURES = [
+  {key:"tap", label:"点击圆心"},
+  {key:"up", label:"上滑"},
+  {key:"down", label:"下滑"},
+  {key:"left", label:"左滑"},
+  {key:"right", label:"右滑"},
+];
+const ACTIONS = [
+  {v:"next", l:"下一题"},
+  {v:"prev", l:"上一题"},
+  {v:"selA", l:"选择 A"},
+  {v:"selB", l:"选择 B"},
+  {v:"selC", l:"选择 C"},
+  {v:"selD", l:"选择 D"},
+  {v:"prevOpt", l:"上一个选项"},
+  {v:"nextOpt", l:"下一个选项"},
+  {v:"sheet", l:"打开答题卡"},
+  {v:"submit", l:"交卷（考试）"},
+];
+const ACT_LABELS = {}; ACTIONS.forEach(a=>ACT_LABELS[a.v]=a.l);
+const FAB_KEY = "sq_fab_v1";
+const FAB = $("fab");
+const FAB_R = 28;
+
+function loadFab(){
+  try{
+    const d = JSON.parse(localStorage.getItem(FAB_KEY));
+    if(d && d.gestures) return {show:d.show!==false, gestures:Object.assign({},DEFAULT_GESTURES,d.gestures), pos:d.pos||null};
+  }catch(e){}
+  return {show:true, gestures:{...DEFAULT_GESTURES}, pos:null};
+}
+let fabCfg = loadFab();
+let fabOn = fabCfg.show;
+
+function saveFab(){ localStorage.setItem(FAB_KEY, JSON.stringify(fabCfg)); }
+function placeFab(){
+  if(fabCfg.pos && typeof fabCfg.pos.left==="number"){
+    FAB.style.left = fabCfg.pos.left+"px"; FAB.style.top = fabCfg.pos.top+"px";
+  }else{
+    FAB.style.left = (window.innerWidth-56-16)+"px";
+    FAB.style.top = (window.innerHeight-56-96)+"px";
+  }
+}
+function updateFab(){
+  FAB.style.display = (fabOn && screens.quiz.classList.contains("active")) ? "flex" : "none";
+}
+function moveFabTo(cx,cy){
+  const L = Math.min(Math.max(cx-FAB_R,0), window.innerWidth-FAB_R*2);
+  const T = Math.min(Math.max(cy-FAB_R,0), window.innerHeight-FAB_R*2);
+  FAB.style.left = L+"px"; FAB.style.top = T+"px";
+  fabCfg.pos = {left:L, top:T};
+}
+
+let toastTimer=null;
+function showToast(msg){
+  const t=$("toast");
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),900);
+}
+
+function doAction(name){
+  const qid = state.order[state.cur];
+  if(qid===undefined) return;
+  switch(name){
+    case "next": goNext(); break;
+    case "prev": if(state.cur>0){state.cur--;renderQ();} break;
+    case "selA": case "selB": case "selC": case "selD": {
+      const idx = {selA:0,selB:1,selC:2,selD:3}[name];
+      if(idx < QUESTIONS[qid].opts.length) onPick(qid, idx);
+      break;
+    }
+    case "prevOpt": optStep(qid,-1); break;
+    case "nextOpt": optStep(qid,1); break;
+    case "sheet": openSheet(); break;
+    case "submit": if(state.mode==="exam" && !state.examSubmitted) submitExam(); break;
+  }
+}
+function optStep(qid, dir){
+  const q = QUESTIONS[qid];
+  if(state.mode!=="exam" && state.answers[qid]!==undefined) return;
+  const n = q.opts.length;
+  const cur = state.answers[qid];
+  const next = cur===undefined ? (dir===1?0:n-1) : (cur+dir+n)%n;
+  onPick(qid, next);
+}
+function trigger(dir){
+  const act = fabCfg.gestures[dir];
+  if(act) doAction(act);
+  if(act) showToast(ACT_LABELS[act]||act);
+}
+
+/* 触摸/鼠标手势：区分点击 / 方向滑动 / 拖动（Pointer Events 统一处理） */
+let ts=null;
+FAB.addEventListener("pointerdown", e=>{
+  try{ if(FAB.setPointerCapture) FAB.setPointerCapture(e.pointerId); }catch(_){}
+  ts={x:e.clientX,y:e.clientY,t:Date.now(),drag:false,dir:null,moved:false};
+  FAB.classList.add("dragging");
+});
+FAB.addEventListener("pointermove", e=>{
+  if(!ts) return;
+  const dx=e.clientX-ts.x, dy=e.clientY-ts.y;
+  const dist=Math.hypot(dx,dy);
+  if(!ts.moved && dist>12){
+    ts.moved=true;
+    if(Date.now()-ts.t>260){ ts.drag=true; }
+    else{ ts.dir = Math.abs(dx)>Math.abs(dy) ? (dx>0?"right":"left") : (dy>0?"down":"up"); }
+  }
+  if(ts.drag) moveFabTo(e.clientX, e.clientY);
+});
+FAB.addEventListener("pointerup", e=>{
+  if(!ts) return;
+  if(!ts.moved){ trigger("tap"); }
+  else if(ts.drag){ saveFab(); }
+  else if(ts.dir){ trigger(ts.dir); }
+  ts=null; FAB.classList.remove("dragging");
+});
+FAB.addEventListener("pointercancel", ()=>{ ts=null; FAB.classList.remove("dragging"); });
+
+/* 设置面板 */
+function openFabPanel(){ renderFabPanel(); $("fabPanel").classList.add("show"); $("mask").classList.add("show"); }
+function closeFabPanel(){ $("fabPanel").classList.remove("show"); $("mask").classList.remove("show"); }
+function renderFabPanel(){
+  $("fabShow").checked = fabOn;
+  const box=$("fabRows"); box.innerHTML="";
+  GESTURES.forEach(g=>{
+    const row=document.createElement("div");
+    row.className="fab-set-row";
+    let opts = ACTIONS.map(a=>'<option value="'+a.v+'"'+(fabCfg.gestures[g.key]===a.v?' selected':'')+'>'+a.l+'</option>').join("");
+    row.innerHTML = '<span>'+g.label+'</span><select data-g="'+g.key+'">'+opts+'</select>';
+    box.appendChild(row);
+  });
+}
+$("fabShow").addEventListener("change", function(){
+  fabOn=this.checked; fabCfg.show=this.checked; saveFab(); updateFab();
+});
+$("fabReset").onclick = ()=>{
+  fabCfg.gestures={...DEFAULT_GESTURES}; saveFab(); renderFabPanel(); showToast("已恢复默认手势");
+};
+$("fabRows").addEventListener("change", e=>{
+  if(e.target.tagName==="SELECT"){ fabCfg.gestures[e.target.dataset.g]=e.target.value; saveFab(); }
+});
+
+/* 悬浮球显示状态随页面切换 */
+const __show = show;
+show = function(name){
+  __show(name);
+  updateFab();
+};
+
+// 初始化
+placeFab();
+updateFab();
+renderHome();
+</script>
+</body>
+</html>
